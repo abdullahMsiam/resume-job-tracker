@@ -26,6 +26,7 @@ GENERATED_DIR.mkdir(exist_ok=True)
 SHEET_NAME = "Abdullah Muhammad Siam -Job tracker"
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
+    "https://www.googleapis.com/auth/drive",
 ]
 
 app = Flask(__name__)
