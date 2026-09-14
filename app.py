@@ -12,6 +12,9 @@ from jinja2 import Template
 from flask import Flask, render_template, request, send_file, flash, redirect, url_for
 from playwright.sync_api import sync_playwright
 
+os.environ.setdefault("PLAYWRIGHT_BROWSERS_PATH", "0")
+
+
 
 BASE_DIR = Path(__file__).resolve().parent
 RESUME_TEMPLATE = BASE_DIR / "resume_template.html"
