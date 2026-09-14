@@ -1,4 +1,6 @@
 credentials.json
+oauth_client.json
+token.json
 .env
 __pycache__/
 generated_resumes/

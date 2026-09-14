@@ -6,6 +6,8 @@ from pathlib import Path
 
 import gspread
 from google.oauth2.service_account import Credentials
+from google.oauth2.credentials import Credentials as UserCredentials
+from google.auth.transport.requests import Request
 from googleapiclient.discovery import build
 from googleapiclient.http import MediaFileUpload
 from jinja2 import Template
@@ -24,7 +26,6 @@ GENERATED_DIR.mkdir(exist_ok=True)
 SHEET_NAME = "Abdullah Muhammad Siam -Job tracker"
 SCOPES = [
     "https://www.googleapis.com/auth/spreadsheets",
-    "https://www.googleapis.com/auth/drive",
 ]
 
 app = Flask(__name__)
@@ -109,25 +110,46 @@ def generate_pdf(company_name, job_position, career_objective):
     return pdf_filename
 
 
+def get_drive_credentials():
+    """Get Google Drive OAuth credentials from Render env or local token.json."""
+    token_json = os.environ.get("GOOGLE_DRIVE_TOKEN")
+
+    if token_json:
+        try:
+            info = json.loads(token_json)
+        except json.JSONDecodeError as exc:
+            raise RuntimeError("GOOGLE_DRIVE_TOKEN is not valid JSON.") from exc
+    else:
+        token_file = BASE_DIR / "token.json"
+        if not token_file.exists():
+            raise RuntimeError(
+                "Google Drive OAuth token not found. Run 'python authorize_drive.py' locally first, "
+                "then configure GOOGLE_DRIVE_TOKEN on Render."
+            )
+        try:
+            info = json.loads(token_file.read_text(encoding="utf-8"))
+        except json.JSONDecodeError as exc:
+            raise RuntimeError("token.json is not valid JSON.") from exc
+
+    credentials = UserCredentials.from_authorized_user_info(
+        info,
+        ["https://www.googleapis.com/auth/drive"],
+    )
+
+    if credentials.expired and credentials.refresh_token:
+        credentials.refresh(Request())
+
+    return credentials
+
+
 def upload_pdf_to_drive(pdf_path: Path):
-    """
-    Upload the generated PDF to Google Drive.
-
-    Recommended production setup:
-      DRIVE_FOLDER_ID = a Google Drive folder shared with the service account.
-    Optional:
-      DRIVE_SHARE_EMAIL = your Google account email. If set, the uploaded
-      file is explicitly shared with that account as a reader.
-    """
+    """Upload the generated PDF using the authorized Google user's Drive quota."""
     folder_id = os.environ.get("DRIVE_FOLDER_ID")
-    share_email = os.environ.get("DRIVE_SHARE_EMAIL")
 
-    # Drive upload is optional. If no folder is configured, the system still
-    # generates the PDF and updates the sheet with the local/server path.
     if not folder_id:
         return None
 
-    creds = get_google_credentials()
+    creds = get_drive_credentials()
     drive = build("drive", "v3", credentials=creds)
 
     metadata = {
@@ -136,7 +158,11 @@ def upload_pdf_to_drive(pdf_path: Path):
         "parents": [folder_id],
     }
 
-    media = MediaFileUpload(str(pdf_path), mimetype="application/pdf", resumable=True)
+    media = MediaFileUpload(
+        str(pdf_path),
+        mimetype="application/pdf",
+        resumable=True,
+    )
 
     uploaded = (
         drive.files()
@@ -144,27 +170,11 @@ def upload_pdf_to_drive(pdf_path: Path):
             body=metadata,
             media_body=media,
             fields="id,name,webViewLink",
-            supportsAllDrives=True,
         )
         .execute()
     )
 
     file_id = uploaded["id"]
-
-    if share_email:
-        drive.permissions().create(
-            fileId=file_id,
-            body={
-                "type": "user",
-                "role": "reader",
-                "emailAddress": share_email,
-            },
-            sendNotificationEmail=False,
-            supportsAllDrives=True,
-        ).execute()
-
-    # webViewLink is returned by Drive when available. Construct a stable
-    # fallback if the API does not return it.
     return uploaded.get("webViewLink") or f"https://drive.google.com/file/d/{file_id}/view"
 
 
