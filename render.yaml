@@ -1,0 +1,17 @@
+services:
+  - type: web
+    name: job-resume-automation
+    runtime: python
+    buildCommand: pip install -r requirements.txt && playwright install --with-deps chromium
+    startCommand: gunicorn app:app
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.11.9
+      - key: FLASK_SECRET_KEY
+        generateValue: true
+      - key: GOOGLE_SERVICE_ACCOUNT_JSON
+        sync: false
+      - key: DRIVE_FOLDER_ID
+        sync: false
+      - key: DRIVE_SHARE_EMAIL
+        sync: false

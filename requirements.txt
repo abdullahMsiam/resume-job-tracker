@@ -1,0 +1,7 @@
+Flask
+gspread
+google-auth
+google-api-python-client
+Jinja2
+playwright
+gunicorn

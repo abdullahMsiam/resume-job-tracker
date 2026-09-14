@@ -1,0 +1,145 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Job Application Automation</title>
+  <style>
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: #f4f7fb;
+      color: #111827;
+      font-family: Arial, Helvetica, sans-serif;
+    }
+    .container {
+      width: min(680px, calc(100% - 28px));
+      margin: 28px auto;
+    }
+    .card {
+      background: white;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 8px 30px rgba(0,0,0,.07);
+    }
+    h1 { margin: 0 0 6px; font-size: 24px; }
+    .subtitle { margin: 0 0 22px; color: #6b7280; }
+    label {
+      display: block;
+      margin: 15px 0 7px;
+      font-weight: 700;
+      font-size: 14px;
+    }
+    input, select, textarea {
+      width: 100%;
+      border: 1px solid #d1d5db;
+      border-radius: 10px;
+      padding: 12px;
+      font: inherit;
+      background: white;
+    }
+    textarea { min-height: 110px; resize: vertical; }
+    button {
+      width: 100%;
+      margin-top: 22px;
+      padding: 13px;
+      border: 0;
+      border-radius: 10px;
+      background: #174a7e;
+      color: white;
+      font-weight: 700;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:disabled { opacity: .6; cursor: wait; }
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+    }
+    .error {
+      background: #fee2e2;
+      color: #991b1b;
+      padding: 12px;
+      border-radius: 10px;
+      margin-bottom: 15px;
+    }
+    @media (max-width: 560px) {
+      .container { margin: 14px auto; }
+      .card { padding: 18px; }
+      .grid { grid-template-columns: 1fr; gap: 0; }
+      h1 { font-size: 21px; }
+    }
+  </style>
+</head>
+<body>
+  <main class="container">
+    <div class="card">
+      <h1>Job Application Automation</h1>
+      <p class="subtitle">Generate your tailored resume and update the job tracker.</p>
+
+      {% with messages = get_flashed_messages(with_categories=true) %}
+        {% for category, message in messages %}
+          <div class="error">{{ message }}</div>
+        {% endfor %}
+      {% endwith %}
+
+      <form id="resumeForm" method="post" action="{{ url_for('generate_from_web') }}">
+        <label for="company_name">Company Name *</label>
+        <input id="company_name" name="company_name" required autocomplete="organization">
+
+        <label for="job_position">Job Position *</label>
+        <input id="job_position" name="job_position" required placeholder="e.g. Software Engineer">
+
+        <label for="job_link">Job Link *</label>
+        <input id="job_link" name="job_link" type="url" required placeholder="https://...">
+
+        <label for="career_objective">Career Objective *</label>
+        <textarea id="career_objective" name="career_objective" required></textarea>
+
+        <div class="grid">
+          <div>
+            <label for="job_nature">Job Nature</label>
+            <select id="job_nature" name="job_nature">
+              <option>Full time</option>
+              <option>Internship</option>
+              <option>Constructual</option>
+            </select>
+          </div>
+
+          <div>
+            <label for="job_type">Job Type</label>
+            <select id="job_type" name="job_type">
+              <option>Remote</option>
+              <option>Onsite</option>
+              <option>Hybrid</option>
+            </select>
+          </div>
+        </div>
+
+        <label for="company_location">Company Location</label>
+        <input id="company_location" name="company_location">
+
+        <label for="how_applied">How Applied</label>
+        <select id="how_applied" name="how_applied">
+          <option>email</option>
+          <option>google form</option>
+        </select>
+
+        <label for="comment">Comment</label>
+        <textarea id="comment" name="comment" style="min-height:80px"></textarea>
+
+        <button id="submitButton" type="submit">GENERATE RESUME</button>
+      </form>
+    </div>
+  </main>
+
+  <script>
+    document.getElementById("resumeForm").addEventListener("submit", function () {
+      const button = document.getElementById("submitButton");
+      button.disabled = true;
+      button.textContent = "Generating...";
+    });
+  </script>
+</body>
+</html>

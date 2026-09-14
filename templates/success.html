@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Resume Generated</title>
+  <style>
+    body { margin:0; background:#f4f7fb; font-family:Arial,sans-serif; color:#111827; }
+    .card { width:min(560px,calc(100% - 28px)); margin:40px auto; background:#fff;
+            padding:25px; border-radius:16px; box-shadow:0 8px 30px rgba(0,0,0,.07); }
+    .success { font-size:28px; margin:0 0 8px; }
+    p { color:#4b5563; }
+    a.button { display:block; text-align:center; text-decoration:none; margin-top:14px;
+               padding:13px; border-radius:10px; background:#174a7e; color:#fff; font-weight:700; }
+    a.secondary { background:#e5e7eb; color:#111827; }
+  </style>
+</head>
+<body>
+  <main class="card">
+    <h1 class="success">✅ Resume Generated</h1>
+    <p>Google Sheet row <strong>{{ sheet_row }}</strong> was updated successfully.</p>
+
+    {% if drive_url %}
+      <a class="button" href="{{ drive_url }}" target="_blank" rel="noopener">OPEN RESUME IN GOOGLE DRIVE</a>
+    {% else %}
+      <a class="button" href="{{ url_for('download_pdf', filename=pdf_name) }}">DOWNLOAD PDF</a>
+    {% endif %}
+
+    <a class="button secondary" href="{{ url_for('index') }}">CREATE ANOTHER</a>
+  </main>
+</body>
+</html>
